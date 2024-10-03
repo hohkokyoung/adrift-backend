@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
-from core.types import RelayFilterConnectionField, RelayNode
-from core.utils import handle_graphql_error
+from core.api.graphql.types import RelayFilterConnectionField, RelayNode
+from core.utils import handle_error
 from users.enums import Role as RoleEnum
 from .types import *
 
@@ -10,7 +10,7 @@ class Query(graphene.ObjectType):
     user = RelayNode.Field(UserNode)
     all_users = RelayFilterConnectionField(UserNode)
 
-    @handle_graphql_error()
+    @handle_error()
     def resolve_me(self, info):
         user = info.context.user
 

@@ -1,14 +1,14 @@
 import graphene
 from graphql_auth import relay
-from core.types import RelayMutation, eval_permission
-from .types import RoleNode
+from core.api.graphql.types import RelayMutation, eval_permission
+from .types import RelayObtainJSONWebToken, RoleNode
 from users.models import Role
 from users.enums import Role as RoleEnum
-from graphql_jwt.decorators import login_required, user_passes_test
+from graphql_jwt.decorators import user_passes_test
 
 class CreateRoleMutation(RelayMutation):
     class Input:
-        name = graphene.String(required=True)
+        name = graphene.Enum.from_enum(RoleEnum)()
 
     role = graphene.Field(RoleNode)
 
@@ -18,9 +18,14 @@ class CreateRoleMutation(RelayMutation):
         if Role.objects.contains_duplicates(name):
             return cls(success=False)
         
-        role = Role.objects.create(name)
+        role_data = {
+            "name": name
+        }
+        
+        role = Role.objects.create(**role_data)
         return cls(success=True, role=role)
 
+    
 class AuthMutation(graphene.ObjectType):
     register = relay.Register.Field()
     verify_account = relay.VerifyAccount.Field()
@@ -33,10 +38,11 @@ class AuthMutation(graphene.ObjectType):
     update_account = relay.UpdateAccount.Field()
 
     # django-graphql-jwt inheritances
-    token_auth = relay.ObtainJSONWebToken.Field()
+    token_auth = RelayObtainJSONWebToken.Field()
     verify_token = relay.VerifyToken.Field()
     refresh_token = relay.RefreshToken.Field()
     revoke_token = relay.RevokeToken.Field()
+
 
 class Mutation(AuthMutation, graphene.ObjectType):
     create_role = CreateRoleMutation.Field()

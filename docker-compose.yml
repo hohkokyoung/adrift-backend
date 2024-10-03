@@ -20,5 +20,26 @@ services:
     ports:
       - 5433:5432
 
+  zookeeper:
+    image: wurstmeister/zookeeper
+    env_file:
+      - ./.env.dev
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    env_file:
+      - ./.env.dev
+    volumes:
+      # docker socket which mounted to communicate with other services in docker (it's to manage topics and what not)
+      - docker_sock:/var/run/docker.sock
+
 volumes:
   postgres_data:
+  docker_sock:

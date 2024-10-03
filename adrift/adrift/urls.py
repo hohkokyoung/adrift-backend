@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.decorators.cache import cache_page
 from graphene_django.views import GraphQLView
 
 """
@@ -25,7 +25,7 @@ Including another URLconf
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("graphql", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path("graphql", cache_page(60 * 15)(csrf_exempt(GraphQLView.as_view(graphiql=True)))),
 ]
 
 if bool(settings.DEBUG):

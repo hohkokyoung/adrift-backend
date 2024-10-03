@@ -34,7 +34,11 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 # Application definition
 
 LOCAL_APPS = [
+    "core",
     "users",
+    "movies",
+    "theaters",
+    "bookings"
 ]
 
 INSTALLED_APPS = [
@@ -48,6 +52,9 @@ INSTALLED_APPS = [
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
     'django_filters',
     'graphql_auth',
+    'django_countries',
+    "phonenumber_field",
+    'languages',
 ] + LOCAL_APPS
 
 MIDDLEWARE = [
@@ -58,7 +65,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.utils.GraphQLLoggingMiddleware'
+    'core.middlewares.GraphQLLoggingMiddleware',
+    'core.middlewares.CurrentUserMiddleware'
 ]
 
 ROOT_URLCONF = 'adrift.urls'
@@ -146,7 +154,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
 
 GRAPHENE = {
-    'SCHEMA': 'api.graphql.schema.schema', # this file doesn't exist yet
+    'SCHEMA': 'core.api.graphql.schema.schema', # this file doesn't exist yet
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
@@ -267,3 +275,5 @@ LOGGING = {
         },
     },
 }
+
+USE_X_FORWARDED_HOST = True

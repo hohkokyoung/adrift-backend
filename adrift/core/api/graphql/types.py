@@ -1,11 +1,14 @@
 from django.conf import settings
+import bleach
+import html
 import graphene
 from graphene import relay
 from graphql import GraphQLError
 from graphene.relay.node import NodeField, Node
 from graphene_django import DjangoObjectType as BaseObjectType
 from graphene_django.filter import DjangoFilterConnectionField as BaseRelayFilterConnectionField
-from core.utils import handle_graphql_error
+from core.utils import handle_error, sanitize
+from core.models import Address
 
 def eval_permission(user, login_required=False, permission_roles=[]):
     if login_required and not user.is_authenticated:
@@ -28,7 +31,7 @@ class RelayNode(Node):
         return NodeField(cls, *args, **kwargs)
     
     @classmethod
-    @handle_graphql_error()
+    @handle_error()
     def node_resolver(cls, only_type, root, info, id):
         # check whether the query requires permission
         eval_permission(info.context.user, cls.login_required, cls.permission_roles)
@@ -82,7 +85,7 @@ class RelayFilterConnectionField(BaseRelayFilterConnectionField):
     def default_resolver(cls, args, info, iterable):
         return iterable
 
-    @handle_graphql_error()
+    @handle_error()
     def resolve_queryset(
         cls, connection, iterable, info, args, filtering_args, filterset_class
     ):
@@ -126,10 +129,19 @@ class RelayMutation(relay.ClientIDMutation):
         raise NotImplementedError("The resolve_mutation method must be overridden.")
 
     @classmethod
-    @handle_graphql_error()
+    @handle_error(rerun=True)
     def mutate_and_get_payload(cls, root, info, **input):
-        """
-        Wrap the main mutation logic and handle success/error response.
-        """
 
-        return cls.resolve_mutation(root, info, **input)
+        sanitized_input = {
+            key: sanitize(value) if isinstance(value, str) else value
+            for key, value in input.items()
+        }
+
+        return cls.resolve_mutation(root, info, **sanitized_input)
+         
+class AddressNode(RelayObjectType):
+    class Meta:
+        model = Address
+        filter_fields = ["country"]
+        fields = "__all__"
+

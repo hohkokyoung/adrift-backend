@@ -4,3 +4,8 @@ gunicorn==21.2.0
 graphene-django
 django-graphql-jwt==0.4.0
 django-graphene-auth
+django-countries
+bleach==6.1.0
+django-phonenumber-field[phonenumbers]
+kafka-python==2.0.2
+git+https://github.com/hohkokyoung/django-language-field.git
